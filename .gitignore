@@ -1,0 +1,4 @@
+ejecucion/config.env
+ejecucion/exports/**/*
+!ejecucion/exports/**/.gitkeep
+setup/pruebas-funcionales/runs/
