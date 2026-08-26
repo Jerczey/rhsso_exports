@@ -22,11 +22,15 @@ export EXPORTS_PARTIAL="${EXPORTS_PARTIAL:-${EJECUCION_ROOT}/exports/partial}"
 export EXPORTS_OFFLINE="${EXPORTS_OFFLINE:-${EJECUCION_ROOT}/exports/offline}"
 export EXPORTS_ANALYSIS="${EXPORTS_ANALYSIS:-${EJECUCION_ROOT}/exports/analysis}"
 
-# PostgreSQL (ejemplo podman)
+# PostgreSQL (Red Hat catalog / podman — lab port 5433, not rhbk-mc :5432)
 export DB_TYPE="${DB_TYPE:-pg}"
 export PG_CONTAINER="${PG_CONTAINER:-my-postgres}"
+export PG_HOST="${PG_HOST:-127.0.0.1}"
+export PG_PORT="${PG_PORT:-5433}"
 export PG_USER="${PG_USER:-yurek}"
 export PG_DB="${PG_DB:-rhsso}"
+export PG_IMAGE="${PG_IMAGE:-registry.access.redhat.com/hi/postgresql:17}"
+export TZ="${TZ:-America/Santiago}"
 
 # Microsoft SQL Server
 export MSSQL_HOST="${MSSQL_HOST:-localhost}"
@@ -34,4 +38,6 @@ export MSSQL_PORT="${MSSQL_PORT:-1433}"
 export MSSQL_DB="${MSSQL_DB:-rhsso}"
 export MSSQL_USER="${MSSQL_USER:-rhsso}"
 export MSSQL_PASSWORD="${MSSQL_PASSWORD:-}"
+export MSSQL_TRUST_CERT="${MSSQL_TRUST_CERT:-false}"
 export SQLCMD="${SQLCMD:-sqlcmd}"
+export PG_PASSWORD="${PG_PASSWORD:-}"

@@ -105,6 +105,19 @@ Sin eventos, el SQL sigue funcionando con sesiones y tokens offline en tiempo re
 
 ---
 
+## Objetivo 3 — Chequeos sintéticos (monitoreo E2E)
+
+Scripts y documentación separados por base de datos. **No usan Podman** — el cliente conecta a su PostgreSQL o SQL Server nativo.
+
+| BD | Script | Documentación |
+|----|--------|---------------|
+| PostgreSQL | `./monitoreo/synthetic-check-pg.sh` | [monitoreo/CHEQUEOS-SINTETICOS-PG.md](monitoreo/CHEQUEOS-SINTETICOS-PG.md) |
+| SQL Server | `./monitoreo/synthetic-check-mssql.sh` | [monitoreo/CHEQUEOS-SINTETICOS-MSSQL.md](monitoreo/CHEQUEOS-SINTETICOS-MSSQL.md) |
+
+Índice: [monitoreo/README.md](monitoreo/README.md). El lab interno (Podman + HAProxy + SPI) está en `setup/monitoreo/`.
+
+---
+
 ## Limpieza de salidas
 
 ```bash

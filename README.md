@@ -19,10 +19,12 @@ rhsso_exports/
 │   ├── lib/env.sh
 │   ├── export/
 │   ├── analysis/       (client-usage-report_pg.sql | _mssql.sql)
+│   ├── monitoreo/      (synthetic-check-pg | -mssql + docs cliente)
 │   └── exports/
 └── setup/
     ├── setup-test-realm.sh
     ├── setup-five-realms.sh
+    ├── monitoreo/      (synthetic-check-pg-lab + doc lab)
     └── pruebas-funcionales/
 ```
 
