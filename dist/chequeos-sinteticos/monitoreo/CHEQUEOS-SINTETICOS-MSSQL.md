@@ -46,7 +46,34 @@ cd ejecucion
 | 4 | HTTP `LB_URL/…` (si está definido) | Igual vía URL pública |
 | 5 | Token OIDC (si `SYNTH_*` definidos) | `POST …/protocol/openid-connect/token` |
 
-## Ejemplos manuales
+## Salida del script
+
+**Todo OK** (con `LB_URL` y `SYNTH_*`):
+
+```text
+OK   SQL Server sqlserver.ejemplo.local:1433/rhsso
+OK   Realm en BD (mi-realm)
+OK   RHSSO https://sso.ejemplo.local/auth/realms/master
+OK   Balanceador https://sso.ejemplo.local/auth/realms/master
+OK   Login OIDC (mi-realm/usuario.prueba)
+---
+Passed: 5  Failed: 0
+```
+
+**Mínimo** (sin balanceador ni login):
+
+```text
+OK   SQL Server sqlserver.ejemplo.local:1433/rhsso
+OK   Realm en BD (mi-realm)
+OK   RHSSO https://sso.ejemplo.local/auth/realms/master
+SKIP Login OIDC — defina SYNTH_USER, SYNTH_PASSWORD y SYNTH_CLIENT_ID para habilitar
+---
+Passed: 3  Failed: 0
+```
+
+Código de salida: `0` si `Failed: 0`; distinto de `0` si hubo algún `FAIL`.
+
+## Ejemplos manuales y salida por capa
 
 ### Capa 1 — Conectividad
 
@@ -64,6 +91,24 @@ sqlcmd -S "${MSSQL_HOST},${MSSQL_PORT}" -C \
   -d "${MSSQL_DB}" -Q "SELECT 1 AS ok"
 ```
 
+**OK:**
+
+```text
+ok
+-----------
+          1
+
+(1 rows affected)
+```
+
+**FAIL:**
+
+```text
+Sqlcmd: Error: Microsoft ODBC Driver 17 for SQL Server : Login timeout expired.
+```
+
+**En script:** `OK SQL Server …` · `FAIL SQL Server …`
+
 ### Capa 2 — Realm en BD
 
 ```bash
@@ -72,12 +117,45 @@ sqlcmd -S "${MSSQL_HOST},${MSSQL_PORT}" \
   -d "${MSSQL_DB}" -Q "SELECT name FROM realm WHERE name = 'mi-realm'"
 ```
 
+**OK:**
+
+```text
+name
+------------
+mi-realm
+
+(1 rows affected)
+```
+
+**FAIL:** `(0 rows affected)`
+
+**En script:** `OK Realm en BD (mi-realm)` · `FAIL Realm en BD (mi-realm)`
+
 ### Capa 3 — RHSSO
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' \
   "${KC_SERVER}/realms/master"
 ```
+
+**OK:** `200`
+
+**FAIL:** `000` · `404` · `502`
+
+**En script:** `OK RHSSO ${KC_SERVER}/realms/master` · `FAIL RHSSO …`
+
+### Capa 4 — Balanceador (opcional)
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' \
+  "${LB_URL}/realms/master"
+```
+
+**OK:** `200`
+
+**FAIL:** `502` · `503` · `000`
+
+**En script:** `OK Balanceador ${LB_URL}/realms/master` · `FAIL Balanceador …`
 
 ### Capa 5 — Login
 
@@ -90,6 +168,16 @@ curl -sf \
   "${KC_SERVER}/realms/${KC_REALM}/protocol/openid-connect/token" \
   | jq -e '.access_token != null'
 ```
+
+**OK:** salida vacía, exit `0`; JSON con `access_token`.
+
+**FAIL (ejemplos):**
+
+```json
+{"error":"invalid_grant","error_description":"Invalid user credentials"}
+```
+
+**En script:** `OK Login OIDC (mi-realm/usuario.prueba)` · `FAIL Login OIDC …`
 
 ## SPI / federación / LDAP
 

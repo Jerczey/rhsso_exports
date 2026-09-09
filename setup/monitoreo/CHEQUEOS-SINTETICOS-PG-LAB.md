@@ -16,6 +16,32 @@ Para el **cliente** (PostgreSQL o SQL Server sin Podman): [../../ejecucion/monit
 | 4. HAProxy lab | `GET http://127.0.0.1:9080/auth/realms/master` | HTTP `200` |
 | 5. Login SPI | `POST …/token` (direct grant) | JSON con `access_token` |
 
+## Salida del script
+
+**Todo OK:**
+
+```text
+OK   PostgreSQL container my-postgres
+OK   PostgreSQL realm data (test-case)
+OK   RHSSO direct /realms/master
+OK   RHSSO via HAProxy /realms/master
+OK   Direct grant login SPI (test-case/tbrady)
+---
+Passed: 5  Failed: 0
+```
+
+**Stack apagado** (ejemplo):
+
+```text
+FAIL PostgreSQL container my-postgres
+FAIL PostgreSQL realm data (test-case)
+FAIL RHSSO direct /realms/master
+FAIL RHSSO via HAProxy /realms/master
+FAIL Direct grant login SPI (test-case/tbrady)
+---
+Passed: 0  Failed: 5
+```
+
 ## Ejecutar
 
 ```bash
@@ -49,36 +75,60 @@ Configuración:
 ./configure-spi-realm.sh
 ```
 
-## Ejemplos manuales
+## Ejemplos manuales y salida por capa
 
-### Capa 1
+### Capa 1 — Contenedor PG
 
 ```bash
 podman exec my-postgres pg_isready -U yurek -d rhsso
 ```
 
-### Capa 2
+**OK:** `127.0.0.1:5432 - accepting connections`
+
+**FAIL:** `no response` · `Error: no container with name or ID "my-postgres"`
+
+**En script:** `OK PostgreSQL container my-postgres` · `FAIL PostgreSQL container my-postgres`
+
+### Capa 2 — Realm en BD
 
 ```bash
 podman exec my-postgres psql -U yurek -d rhsso -tAc \
   "SELECT 1 FROM realm WHERE name='test-case'"
 ```
 
-### Capa 3
+**OK:** `1`
+
+**FAIL:** (sin salida)
+
+**En script:** `OK PostgreSQL realm data (test-case)` · `FAIL PostgreSQL realm data (test-case)`
+
+### Capa 3 — RHSSO directo
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' \
   http://127.0.0.1:8080/auth/realms/master
 ```
 
-### Capa 4
+**OK:** `200`
+
+**FAIL:** `000`
+
+**En script:** `OK RHSSO direct /realms/master` · `FAIL RHSSO direct /realms/master`
+
+### Capa 4 — HAProxy lab
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' \
   http://127.0.0.1:9080/auth/realms/master
 ```
 
-### Capa 5 (SPI)
+**OK:** `200`
+
+**FAIL:** `000` (HAProxy no arrancado)
+
+**En script:** `OK RHSSO via HAProxy /realms/master` · `FAIL RHSSO via HAProxy /realms/master`
+
+### Capa 5 — Login SPI
 
 ```bash
 curl -sf \
@@ -89,6 +139,12 @@ curl -sf \
   http://127.0.0.1:8080/auth/realms/test-case/protocol/openid-connect/token \
   | jq -e '.access_token != null'
 ```
+
+**OK:** exit `0`; JSON con `access_token`.
+
+**FAIL:** `invalid_grant` (usuario SPI no configurado o realm incorrecto)
+
+**En script:** `OK Direct grant login SPI (test-case/tbrady)` · `FAIL Direct grant login SPI …`
 
 ## Recorrido
 
